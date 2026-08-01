@@ -7,4 +7,4 @@ function SecurityCard({ title, description }) {
   );
 }
 
-export default SecurityCard;
+export default SecurityFeature;
