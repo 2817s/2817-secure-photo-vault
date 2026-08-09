@@ -5,6 +5,7 @@ import Unlock from "./pages/Unlock";
 import Gallery from "./pages/Gallery";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
+import Tasks from "./Tasks";
 
 function ProtectedRoute({ children }) {
   const unlocked =
@@ -59,6 +60,16 @@ function App() {
         element={
           <ProtectedRoute>
             <Projects />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Practical 4 - Tasks */}
+      <Route
+        path="/tasks"
+        element={
+          <ProtectedRoute>
+            <Tasks />
           </ProtectedRoute>
         }
       />
