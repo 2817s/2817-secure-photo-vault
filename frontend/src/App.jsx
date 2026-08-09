@@ -4,6 +4,7 @@ import Landing from "./pages/Landing";
 import Unlock from "./pages/Unlock";
 import Gallery from "./pages/Gallery";
 import Dashboard from "./pages/Dashboard";
+import Projects from "./pages/Projects";
 
 function ProtectedRoute({ children }) {
   const unlocked =
@@ -19,10 +20,20 @@ function ProtectedRoute({ children }) {
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Landing />} />
 
-      <Route path="/unlock" element={<Unlock />} />
+      {/* Landing Page */}
+      <Route
+        path="/"
+        element={<Landing />}
+      />
 
+      {/* Unlock Page */}
+      <Route
+        path="/unlock"
+        element={<Unlock />}
+      />
+
+      {/* Protected Gallery */}
       <Route
         path="/gallery"
         element={
@@ -32,6 +43,7 @@ function App() {
         }
       />
 
+      {/* Protected Dashboard */}
       <Route
         path="/dashboard"
         element={
@@ -41,10 +53,22 @@ function App() {
         }
       />
 
+      {/* Practical 3 - Projects */}
+      <Route
+        path="/projects"
+        element={
+          <ProtectedRoute>
+            <Projects />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Unknown URL */}
       <Route
         path="*"
         element={<Navigate to="/" replace />}
       />
+
     </Routes>
   );
 }
