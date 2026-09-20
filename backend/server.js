@@ -1,14 +1,18 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const cors = require("cors");
 
+dotenv.config();
+
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Request logging middleware
+// Request logging
 app.use((req, res, next) => {
   console.log(
     `${req.method} ${req.url} - ${new Date().toISOString()}`
@@ -20,8 +24,7 @@ app.use((req, res, next) => {
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/tasks", taskRoutes);
 
-// Global error handling middleware
-// This must be the LAST middleware.
+// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
 
@@ -30,7 +33,16 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Connect MongoDB and start server
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected successfully");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error);
+  });
