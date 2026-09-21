@@ -24,6 +24,9 @@ app.use((req, res, next) => {
 const taskRoutes = require("./routes/taskRoutes");
 app.use("/tasks", taskRoutes);
 
+const authRoutes = require("./routes/authRoutes");
+app.use("/auth", authRoutes);
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);

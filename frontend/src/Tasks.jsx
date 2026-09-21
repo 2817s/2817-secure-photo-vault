@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   getTasks,
   createTask,
   updateTask,
   deleteTask,
 } from "./api";
+
 import "./Tasks.css";
 
 function Tasks() {
+  const navigate = useNavigate();
+
   const [tasks, setTasks] = useState([]);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
 
-  // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Get tasks
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -30,18 +33,19 @@ function Tasks() {
       setTasks(data);
     } catch (err) {
       console.error(err);
-      setError("Unable to load tasks. Please try again.");
+
+      if (err.message !== "Session expired. Please login again.") {
+        setError("Unable to load tasks. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Load tasks when page opens
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  // Add task
   const addTask = async (event) => {
     event.preventDefault();
 
@@ -66,13 +70,15 @@ function Tasks() {
       await fetchTasks();
     } catch (err) {
       console.error(err);
-      setError("Unable to create task. Please try again.");
+
+      if (err.message !== "Session expired. Please login again.") {
+        setError(err.message || "Unable to create task. Please try again.");
+      }
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Complete / Pending
   const toggleTask = async (task) => {
     try {
       setActionLoading(true);
@@ -85,13 +91,15 @@ function Tasks() {
       await fetchTasks();
     } catch (err) {
       console.error(err);
-      setError("Unable to update task. Please try again.");
+
+      if (err.message !== "Session expired. Please login again.") {
+        setError(err.message || "Unable to update task. Please try again.");
+      }
     } finally {
       setActionLoading(false);
     }
   };
 
-  // Delete
   const removeTask = async (id) => {
     try {
       setActionLoading(true);
@@ -102,16 +110,22 @@ function Tasks() {
       await fetchTasks();
     } catch (err) {
       console.error(err);
-      setError("Unable to delete task. Please try again.");
+
+      if (err.message !== "Session expired. Please login again.") {
+        setError(err.message || "Unable to delete task. Please try again.");
+      }
     } finally {
       setActionLoading(false);
     }
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem("authToken");
+    navigate("/login");
+  };
+
   return (
     <div className="tasks-page">
-
-      {/* Header */}
       <div className="tasks-header">
         <div>
           <p className="tasks-label">SECURE PHOTO VAULT</p>
@@ -123,12 +137,35 @@ function Tasks() {
           </p>
         </div>
 
-        <div className="tasks-count">
-          {tasks.length} {tasks.length === 1 ? "Task" : "Tasks"}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
+          <div className="tasks-count">
+            {tasks.length}{" "}
+            {tasks.length === 1 ? "Task" : "Tasks"}
+          </div>
+
+          <button
+            onClick={handleLogout}
+            style={{
+              padding: "8px 14px",
+              border: "1px solid #d1d5db",
+              borderRadius: "8px",
+              background: "white",
+              color: "#374151",
+              fontWeight: "600",
+              cursor: "pointer",
+            }}
+          >
+            Logout
+          </button>
         </div>
       </div>
 
-      {/* Error message */}
       {error && (
         <div className="task-error">
           <span>{error}</span>
@@ -139,17 +176,20 @@ function Tasks() {
         </div>
       )}
 
-      {/* Add Task */}
       <div className="task-form-card">
         <h2>Add New Task</h2>
 
-        <form onSubmit={addTask} className="task-form">
-
+        <form
+          onSubmit={addTask}
+          className="task-form"
+        >
           <input
             type="text"
             placeholder="Task title"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            onChange={(event) =>
+              setTitle(event.target.value)
+            }
             disabled={actionLoading}
           />
 
@@ -168,15 +208,14 @@ function Tasks() {
             className="add-task-button"
             disabled={actionLoading}
           >
-            {actionLoading ? "Processing..." : "+ Add Task"}
+            {actionLoading
+              ? "Processing..."
+              : "+ Add Task"}
           </button>
-
         </form>
       </div>
 
-      {/* Task List */}
       <div className="task-list-card">
-
         <div className="task-list-header">
           <h2>Your Tasks</h2>
 
@@ -185,7 +224,6 @@ function Tasks() {
           </span>
         </div>
 
-        {/* Loading */}
         {loading ? (
           <div className="empty-tasks">
             <div className="loading-spinner"></div>
@@ -198,7 +236,6 @@ function Tasks() {
           </div>
         ) : tasks.length === 0 ? (
           <div className="empty-tasks">
-
             <div className="empty-icon">
               ✓
             </div>
@@ -208,21 +245,19 @@ function Tasks() {
             <p>
               Add your first task above to get started.
             </p>
-
           </div>
         ) : (
           <div className="task-list">
-
             {tasks.map((task) => (
               <div
                 key={task._id}
                 className={`task-item ${
-                  task.completed ? "task-completed" : ""
+                  task.completed
+                    ? "task-completed"
+                    : ""
                 }`}
               >
-
                 <div className="task-content">
-
                   <h3>{task.title}</h3>
 
                   {task.description && (
@@ -240,14 +275,14 @@ function Tasks() {
                       ? "Completed"
                       : "Pending"}
                   </span>
-
                 </div>
 
                 <div className="task-actions">
-
                   <button
                     className="complete-button"
-                    onClick={() => toggleTask(task)}
+                    onClick={() =>
+                      toggleTask(task)
+                    }
                     disabled={actionLoading}
                   >
                     {task.completed
@@ -264,17 +299,12 @@ function Tasks() {
                   >
                     Delete
                   </button>
-
                 </div>
-
               </div>
             ))}
-
           </div>
         )}
-
       </div>
-
     </div>
   );
 }

@@ -5,7 +5,10 @@ import Unlock from "./pages/Unlock";
 import Gallery from "./pages/Gallery";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
+
 import Tasks from "./Tasks";
+import Login from "./Login";
+import Register from "./Register";
 
 function ProtectedRoute({ children }) {
   const unlocked =
@@ -18,10 +21,19 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function AuthProtectedRoute({ children }) {
+  const token = sessionStorage.getItem("authToken");
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
 function App() {
   return (
     <Routes>
-
       {/* Landing Page */}
       <Route
         path="/"
@@ -32,6 +44,18 @@ function App() {
       <Route
         path="/unlock"
         element={<Unlock />}
+      />
+
+      {/* Login Page */}
+      <Route
+        path="/login"
+        element={<Login />}
+      />
+
+      {/* Register Page */}
+      <Route
+        path="/register"
+        element={<Register />}
       />
 
       {/* Protected Gallery */}
@@ -64,12 +88,14 @@ function App() {
         }
       />
 
-      {/* Practical 4 - Tasks */}
+      {/* Practical 7 - JWT Protected Tasks */}
       <Route
         path="/tasks"
         element={
           <ProtectedRoute>
-            <Tasks />
+            <AuthProtectedRoute>
+              <Tasks />
+            </AuthProtectedRoute>
           </ProtectedRoute>
         }
       />
@@ -79,7 +105,6 @@ function App() {
         path="*"
         element={<Navigate to="/" replace />}
       />
-
     </Routes>
   );
 }
