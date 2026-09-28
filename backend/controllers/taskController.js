@@ -1,9 +1,21 @@
 const Task = require("../models/Task");
+const cache = require("../utils/cache");
 
 // GET /tasks
 const getTasks = async (req, res, next) => {
   try {
+    const cachedTasks = cache.get("all_tasks");
+
+    if (cachedTasks !== undefined) {
+      console.log("CACHE HIT - Returning tasks from memory");
+      return res.status(200).json(cachedTasks);
+    }
+
+    console.log("CACHE MISS - Fetching tasks from MongoDB");
+
     const tasks = await Task.find().sort({ createdAt: -1 });
+
+    cache.set("all_tasks", tasks);
 
     res.status(200).json(tasks);
   } catch (error) {
@@ -45,6 +57,9 @@ const createTask = async (req, res, next) => {
       completed: completed ?? false,
     });
 
+    // Invalidate cached task list after successful write
+    cache.del("all_tasks");
+
     res.status(201).json(newTask);
   } catch (error) {
     next(error);
@@ -75,6 +90,9 @@ const updateTask = async (req, res, next) => {
       });
     }
 
+    // Invalidate cached task list after successful write
+    cache.del("all_tasks");
+
     res.status(200).json(task);
   } catch (error) {
     next(error);
@@ -91,6 +109,9 @@ const deleteTask = async (req, res, next) => {
         error: "Task not found",
       });
     }
+
+    // Invalidate cached task list after successful write
+    cache.del("all_tasks");
 
     res.status(200).json({
       message: "Task deleted successfully",
