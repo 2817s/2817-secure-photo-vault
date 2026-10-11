@@ -1,9 +1,13 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 
 dotenv.config();
+
+// Register event listeners once when the server starts
+require("./listeners");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +34,10 @@ app.use("/auth", authRoutes);
 // Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
+
+  if (res.headersSent) {
+    return next(err);
+  }
 
   res.status(500).json({
     error: "Something went wrong",

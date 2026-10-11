@@ -1,5 +1,7 @@
+
 const Task = require("../models/Task");
 const cache = require("../utils/cache");
+const taskEvents = require("../events/taskEvents");
 
 // GET /tasks
 const getTasks = async (req, res, next) => {
@@ -57,10 +59,28 @@ const createTask = async (req, res, next) => {
       completed: completed ?? false,
     });
 
-    // Invalidate cached task list after successful write
+    // Practical 9: invalidate cached task list
     cache.del("all_tasks");
 
+    // Practical 10: log when the API response is sent
+    console.log(
+      `[API] Response sent at ${new Date().toISOString()}`
+    );
+
+    // Respond to the client immediately
     res.status(201).json(newTask);
+
+    // Schedule notification handling after sending the response
+    setImmediate(() => {
+      try {
+        taskEvents.emit("task-created", {
+          task: newTask,
+          assignedUser: req.user?.id || "not specified",
+        });
+      } catch (error) {
+        taskEvents.emit("task-notification-error", error);
+      }
+    });
   } catch (error) {
     next(error);
   }
@@ -90,7 +110,7 @@ const updateTask = async (req, res, next) => {
       });
     }
 
-    // Invalidate cached task list after successful write
+    // Practical 9: invalidate cached task list
     cache.del("all_tasks");
 
     res.status(200).json(task);
@@ -110,8 +130,17 @@ const deleteTask = async (req, res, next) => {
       });
     }
 
-    // Invalidate cached task list after successful write
+    // Practical 9: invalidate cached task list
     cache.del("all_tasks");
+
+    // Practical 10: emit task-deleted event
+    setImmediate(() => {
+      try {
+        taskEvents.emit("task-deleted", task);
+      } catch (error) {
+        taskEvents.emit("task-notification-error", error);
+      }
+    });
 
     res.status(200).json({
       message: "Task deleted successfully",
